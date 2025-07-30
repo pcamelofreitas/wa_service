@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp QR Code</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        .whatsapp-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #25D366;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .qr-code {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: inline-block;
+        }
+        .qr-code img {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        .instructions {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            color: #25D366;
+            margin-top: 0;
+        }
+        .instructions ol {
+            text-align: left;
+            color: #444;
+        }
+        .status {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .refresh-btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .refresh-btn:hover {
+            background: #128C7E;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            .qr-code img {
+                max-width: 240px;
+            }
+        }
+    </style>
+    <script>
+        let reloadTimer;
+        let countdownTimer;
+        let timeLeft = 30;
+
+        function updateCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            if (countdownElement) {
+                countdownElement.textContent = timeLeft;
+            }
+            
+            if (timeLeft <= 0) {
+                window.location.reload();
+            } else {
+                timeLeft--;
+                countdownTimer = setTimeout(updateCountdown, 1000);
+            }
+        }
+
+        function startAutoReload() {
+            // Start countdown immediately when page loads
+            updateCountdown();
+        }
+
+        function resetTimer() {
+            // Reset the timer when user manually refreshes
+            clearTimeout(reloadTimer);
+            clearTimeout(countdownTimer);
+            timeLeft = 30;
+            startAutoReload();
+        }
+
+        // Start auto-reload when page loads
+        window.addEventListener('load', startAutoReload);
+
+        // Handle visibility change (pause when tab is not visible)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                clearTimeout(reloadTimer);
+                clearTimeout(countdownTimer);
+            } else {
+                // Reset timer when user comes back to tab
+                timeLeft = 30;
+                startAutoReload();
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="whatsapp-icon">📱</div>
+        <h1>Conectar WhatsApp</h1>
+        <p>Escaneie o QR Code abaixo com seu WhatsApp para conectar ao serviço</p>
+        
+        <div class="qr-code">
+            <img src="{{qrCode}}" alt="WhatsApp QR Code" />
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Como conectar:</h3>
+            <ol>
+                <li>Abra o WhatsApp no seu celular</li>
+                <li>Toque no menu (⋮) e selecione "Dispositivos conectados"</li>
+                <li>Toque em "Conectar um dispositivo"</li>
+                <li>Aponte a câmera para o QR Code acima</li>
+            </ol>
+        </div>
+        
+        <div class="status">
+            <strong>Status atual:</strong> {{connectionStatus}}
+        </div>
+        
+        <button class="refresh-btn" onclick="resetTimer()">🔄 Atualizar QR Code</button>
+        
+        <p style="font-size: 12px; color: #999; margin-top: 30px;">
+            Próxima atualização automática em <span id="countdown">30</span> segundos
+        </p>
+    </div>
+</body>
+</html>

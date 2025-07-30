@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp - Aguardando QR Code</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #FF6B35, #F7931E);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+        }
+        .loading-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 {
+            color: #FF6B35;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .refresh-btn {
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .refresh-btn:hover {
+            background: #E55A2B;
+        }
+    </style>
+    <script>
+        setTimeout(() => {
+            window.location.reload();
+        }, 3000);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="loading-icon">⏳</div>
+        <h1>Aguardando QR Code</h1>
+        <p>O QR Code não está disponível no momento.</p>
+        <p><strong>Status:</strong> {{connectionStatus}}</p>
+        <p>A página será atualizada automaticamente...</p>
+        <button class="refresh-btn" onclick="window.location.reload()">Atualizar Agora</button>
+    </div>
+</body>
+</html>
