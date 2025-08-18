@@ -40,12 +40,7 @@ npm start
 
 ## 🌐 Deploy
 
-Este projeto está pronto para deploy em:
-
-- **Railway** (Recomendado - Filesystem persistente)
-- **Heroku** (Requer adaptação para database)
-- **Render** (Filesystem ephemeral)
-- **DigitalOcean App Platform**
+Este projeto está otimizado para deploy no **Railway**.
 
 ### Variáveis de Ambiente
 
@@ -55,7 +50,7 @@ PORT=3000  # Porta do servidor (opcional)
 
 ## 📱 Como Usar
 
-1. **Deploy na plataforma escolhida**
+1. **Deploy no Railway**
 2. **Acesse `/admin`** para gerenciar o serviço
 3. **Acesse `/qrcode`** e escaneie com WhatsApp
 4. **Use `/send-message`** para enviar mensagens
@@ -83,3 +78,4 @@ auth_info/                    # Credenciais WhatsApp (não versionado)
 - A pasta `auth_info/` contém as credenciais do WhatsApp e não deve ser versionada
 - Para homologação, use o endpoint `/clear-credentials` para trocar contas rapidamente
 - O serviço reconnecta automaticamente em caso de falha
+- Requer Node.js 20+ para funcionar corretamente
