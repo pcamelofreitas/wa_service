@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Service - Admin</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        .admin-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .status-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .status-card h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status-value {
+            font-weight: bold;
+            color: #25D366;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #25D366;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #128C7E;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        .btn-info:hover {
+            background: #138496;
+        }
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            display: none;
+        }
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .alert-danger {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+        .loading::after {
+            content: "⏳ Processando...";
+            color: #667eea;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-icon">⚙️</div>
+        <h1>WhatsApp Service Admin</h1>
+        <p>Painel administrativo para gerenciar o serviço WhatsApp</p>
+        
+        <div class="status-card">
+            <h3>📊 Status Atual</h3>
+            <p><strong>Conexão:</strong> <span class="status-value" id="connectionStatus">Carregando...</span></p>
+            <p><strong>Conectado:</strong> <span class="status-value" id="connectedStatus">Carregando...</span></p>
+            <p><strong>Última atualização:</strong> <span id="lastUpdate">Carregando...</span></p>
+        </div>
+
+        <div class="alert alert-success" id="successAlert"></div>
+        <div class="alert alert-danger" id="errorAlert"></div>
+        <div class="loading" id="loading"></div>
+
+        <div class="button-group">
+            <a href="/qrcode" class="btn btn-primary" target="_blank">📱 Ver QR Code</a>
+            <button class="btn btn-info" onclick="refreshStatus()">🔄 Atualizar Status</button>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-warning" onclick="restartService()">🔄 Reiniciar Serviço</button>
+            <button class="btn btn-danger" onclick="clearCredentials()">🗑️ Limpar Credenciais</button>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <h4>🚨 Ações Perigosas</h4>
+            <p style="font-size: 12px; color: #666;">
+                <strong>Limpar Credenciais:</strong> Remove todas as credenciais salvadas. Você precisará escanear o QR Code novamente.<br>
+                <strong>Reiniciar Serviço:</strong> Reinicia a conexão WhatsApp mantendo as credenciais.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let statusInterval;
+
+        async function refreshStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                
+                document.getElementById('connectionStatus').textContent = data.connectionStatus;
+                document.getElementById('connectedStatus').textContent = data.connected ? 'Sim ✅' : 'Não ❌';
+                document.getElementById('lastUpdate').textContent = new Date(data.timestamp).toLocaleString('pt-BR');
+                
+                // Update status colors
+                const statusEl = document.getElementById('connectionStatus');
+                statusEl.style.color = data.connected ? '#25D366' : '#dc3545';
+            } catch (error) {
+                console.error('Erro ao buscar status:', error);
+                showError('Erro ao buscar status do serviço');
+            }
+        }
+
+        async function clearCredentials() {
+            if (!confirm('⚠️ ATENÇÃO!\n\nEsta ação irá:\n• Desconectar o WhatsApp\n• Remover todas as credenciais\n• Exigir novo scan do QR Code\n\nDeseja continuar?')) {
+                return;
+            }
+
+            showLoading(true);
+            hideAlerts();
+
+            try {
+                const response = await fetch('/clear-credentials', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess('Credenciais removidas com sucesso! Serviço reiniciando...');
+                    setTimeout(refreshStatus, 3000);
+                } else {
+                    showError('Erro: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro ao limpar credenciais:', error);
+                showError('Erro ao limpar credenciais');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function restartService() {
+            if (!confirm('Deseja reiniciar o serviço WhatsApp?\n\nIsso irá reconectar mantendo as credenciais salvas.')) {
+                return;
+            }
+
+            showLoading(true);
+            hideAlerts();
+
+            try {
+                const response = await fetch('/restart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess('Serviço reiniciado com sucesso!');
+                    setTimeout(refreshStatus, 3000);
+                } else {
+                    showError('Erro: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Erro ao reiniciar serviço:', error);
+                showError('Erro ao reiniciar serviço');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showSuccess(message) {
+            const alert = document.getElementById('successAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+        }
+
+        function hideAlerts() {
+            document.getElementById('successAlert').style.display = 'none';
+            document.getElementById('errorAlert').style.display = 'none';
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // Auto refresh status every 30 seconds
+        function startAutoRefresh() {
+            refreshStatus();
+            statusInterval = setInterval(refreshStatus, 30000);
+        }
+
+        // Stop auto refresh when page is hidden
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                clearInterval(statusInterval);
+            } else {
+                startAutoRefresh();
+            }
+        });
+
+        // Start when page loads
+        window.addEventListener('load', startAutoRefresh);
+    </script>
+</body>
+</html>

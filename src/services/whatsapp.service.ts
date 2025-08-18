@@ -1,5 +1,7 @@
 import makeWASocket, { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import * as QRCode from "qrcode";
+import { rmSync, existsSync } from "fs";
+import { join } from "path";
 
 class WhatsAppService {
   private sock: any;
@@ -79,6 +81,38 @@ class WhatsAppService {
 
     console.log("=======================================");
     console.log(conversationId);
+  };
+
+  public clearCredentials = async (): Promise<boolean> => {
+    try {
+      // Desconectar o socket atual
+      if (this.sock) {
+        await this.sock.logout();
+        this.sock = null;
+      }
+
+      // Limpar dados em memória
+      this.qrCodeData = null;
+      this.connectionStatus = "disconnected";
+
+      // Remover pasta de credenciais
+      const authPath = join(process.cwd(), "auth_info");
+      if (existsSync(authPath)) {
+        rmSync(authPath, { recursive: true, force: true });
+        console.log("🗑️ Credenciais removidas com sucesso");
+      }
+
+      console.log("✅ Credenciais limpas. Pronto para nova conexão.");
+      return true;
+    } catch (error) {
+      console.error("❌ Erro ao limpar credenciais:", error);
+      return false;
+    }
+  };
+
+  public restart = async (): Promise<void> => {
+    console.log("🔄 Reiniciando serviço WhatsApp...");
+    await this.start();
   };
 }
 
